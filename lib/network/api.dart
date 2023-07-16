@@ -1,7 +1,9 @@
 import 'dart:convert';
 
-import '../pages/models/login_response.dart';
+
 import 'package:http/http.dart' as http;
+
+import '../models/login_response.dart';
 
 const String host = 'http://parkzwebapiver2-001-site1.ctempurl.com';
 

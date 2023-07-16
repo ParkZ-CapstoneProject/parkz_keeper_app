@@ -5,7 +5,7 @@ import '../text/semi_bold.dart';
 
 class MyButton extends StatelessWidget {
   final String text;
-  final Function()? function;
+  final void Function()? function;
   final Color textColor;
   final Color backgroundColor;
   final double? minWidth;

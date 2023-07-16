@@ -5,13 +5,12 @@ import 'package:sms_autofill/sms_autofill.dart';
 import '../../common/button/button_widget.dart';
 import '../../common/constanst.dart';
 import '../../common/text/medium.dart';
-import '../../common/text/regular.dart';
 import '../../common/text/semi_bold.dart';
 import '../../common/utils/util_widget.dart';
 import '../../network/api.dart';
 import '../authentication/authentication_page.dart';
 import '../home/home_page.dart';
-import '../models/login_response.dart';
+
 
 class OtpPage extends StatefulWidget {
 
@@ -78,7 +77,7 @@ class _OtpPageState extends State<OtpPage> with CodeAutoFill {
                       maxLine: 2),
                   const SizedBox(height: 8,),
                   MediumText(
-                      text: 'Mã OTP được gửi tới số ${AuthenticationPage.phone}',
+                      text: 'Mã OTP được gửi tới email ${AuthenticationPage.email}',
                       color: Colors.blueGrey,
                       maxLine: 2,
                       fontSize: 14),
@@ -133,34 +132,37 @@ class _OtpPageState extends State<OtpPage> with CodeAutoFill {
                           text: 'Tiếp tục',
                           textColor: AppColor.navyPale,
                           backgroundColor: AppColor.navy,
-                          function: () async {
-                            if(codeValue.length < 6){
-                              Utils(context).showErrorSnackBar('Mã OTP không được bỏ trống');
-                            }
-                            else{
-                              try{
-                                Utils(context).startLoading();
-                                // if(codeValue != "123456"){
-                                //   PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: AuthenticationPage.verify, smsCode: codeValue);
-                                //   await auth.signInWithCredential(credential);
-                                // }
-                                LoginResponse reponse = await login(AuthenticationPage.phone);
-                                Utils(context).stopLoading();
-
-                                if(reponse.data == null){
-                                  await Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()),
-                                  );
-                                }
-                                else {
-                                  await Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()),
-                                  );
-                                };
-                              }catch(e){
-                                Utils(context).stopLoading();
-                                Utils(context).showErrorSnackBar('Mã OTP không hợp lệ');
+                          function:
+                            () async {
+                              if(codeValue.length < 6){
+                                Utils(context).showErrorSnackBar('Mã OTP không được bỏ trống');
                               }
+                              else{
+                                try{
+                                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()),);
+                                  //Utils(context).startLoading();
+                                  // if(codeValue != "123456"){
+                                  //   PhoneAuthCredential credential = PhoneAuthProvider.credential(verificationId: AuthenticationPage.verify, smsCode: codeValue);
+                                  //   await auth.signInWithCredential(credential);
+                                  // }
+                                 // LoginResponse reponse = await login(AuthenticationPage.phone);
+                                  //Utils(context).stopLoading();
 
-                            }
+
+                                  // if(reponse.data == null){
+                                  //   Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()),
+                                  //   );
+                                  // }
+                                  // else {
+                                  //   await Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const HomePage()),
+                                  //   );
+                                  // };
+                                }catch(e){
+                                  //Utils(context).stopLoading();
+                                  Utils(context).showErrorSnackBar('Mã OTP không hợp lệ');
+                                }
+
+                            };
                           },
                         )),
                   )
