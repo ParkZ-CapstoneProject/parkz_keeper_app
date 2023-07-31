@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:parkz_keeper_app/common/utils/util_widget.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/foundation.dart';
+
+import '../bookingdetail/booking_detail_page.dart';
 
 class QRViewExample extends StatefulWidget {
   const QRViewExample({Key? key}) : super(key: key);
@@ -42,8 +45,7 @@ class _QRViewExampleState extends State<QRViewExample> {
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
                   if (result != null)
-                    Text(
-                        'Barcode Type: QR   Data: ${result!.code}')
+                    Text('Barcode Type: QR   Data: ${result!.code}')
                   else
                     const Text('Scan a code'),
                   Row(
@@ -148,6 +150,16 @@ class _QRViewExampleState extends State<QRViewExample> {
     controller.scannedDataStream.listen((scanData) {
       setState(() {
         result = scanData;
+        if(result!.code!.contains('pz')){
+          int bookingId = int.parse(result!.code!.split('-')[1]);
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>  BookingPage(bookingId: bookingId)),
+          );
+        }else{
+         Utils(context).showErrorSnackBar('Mã QR không hợp lệ');
+        }
       });
     });
   }

@@ -12,14 +12,12 @@ class ProfileMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: () {
-        if(page != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) =>  page!),
-          );
-        }
-      },
+      onTap: page != null ? () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) =>  page!),
+        );
+      } : null,
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: SizedBox(

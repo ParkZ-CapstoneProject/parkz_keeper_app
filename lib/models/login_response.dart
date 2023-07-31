@@ -9,7 +9,7 @@ LoginResponse loginResponseFromJson(String str) => LoginResponse.fromJson(json.d
 String loginResponseToJson(LoginResponse data) => json.encode(data.toJson());
 
 class LoginResponse {
-  final String? data;
+  final Data? data;
   final bool? success;
   final String? message;
   final int? statusCode;
@@ -24,7 +24,7 @@ class LoginResponse {
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) => LoginResponse(
-    data: json["data"],
+    data: json["data"] == null ? null : Data.fromJson(json["data"]),
     success: json["success"],
     message: json["message"],
     statusCode: json["statusCode"],
@@ -32,10 +32,26 @@ class LoginResponse {
   );
 
   Map<String, dynamic> toJson() => {
-    "data": data,
+    "data": data?.toJson(),
     "success": success,
     "message": message,
     "statusCode": statusCode,
     "count": count,
+  };
+}
+
+class Data {
+  final String? token;
+
+  Data({
+    this.token,
+  });
+
+  factory Data.fromJson(Map<String, dynamic> json) => Data(
+    token: json["token"],
+  );
+
+  Map<String, dynamic> toJson() => {
+    "token": token,
   };
 }

@@ -44,6 +44,12 @@ dependencies:
   flutter_svg: ^2.0.5
   qr_code_scanner: ^1.0.1
   fl_chart: ^0.63.0
+  intl: ^0.17.0
+  flutter_secure_storage: ^8.0.0
+  awesome_dialog: ^3.1.0
+  table_calendar: ^3.0.8
+
+
 
 
 dev_dependencies:
@@ -68,6 +74,10 @@ flutter:
     - assets/json/otp/
     - assets/icon/
     - assets/image/
+    - assets/json/loading/
+    - assets/json/empty/
+
+
 
 
 

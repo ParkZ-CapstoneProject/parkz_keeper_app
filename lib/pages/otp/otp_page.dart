@@ -7,7 +7,6 @@ import '../../common/constanst.dart';
 import '../../common/text/medium.dart';
 import '../../common/text/semi_bold.dart';
 import '../../common/utils/util_widget.dart';
-import '../../network/api.dart';
 import '../authentication/authentication_page.dart';
 import '../home/home_page.dart';
 

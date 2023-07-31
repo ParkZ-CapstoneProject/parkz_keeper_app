@@ -4,8 +4,10 @@ import 'package:parkz_keeper_app/common/constanst.dart';
 import 'package:parkz_keeper_app/common/text/medium.dart';
 import 'package:parkz_keeper_app/common/text/regular.dart';
 import 'package:parkz_keeper_app/common/text/semi_bold.dart';
-import 'package:parkz_keeper_app/pages/dashboard/component/daterangebutton.dart';
+import 'package:parkz_keeper_app/network/api.dart';
 import 'package:parkz_keeper_app/pages/dashboard/component/linechart.dart';
+
+import '../../models/profile_response.dart';
 
 class Dashboard extends StatefulWidget {
   const Dashboard({Key? key}) : super(key: key);
@@ -26,26 +28,56 @@ class _DashboardState extends State<Dashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const SizedBox(height: 16,),
-                const Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                FutureBuilder<ProfileResponse?>(
+                  future: getProfile(context),
+                    builder: (myContext, snapshot) {
+                    if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
+                    if (snapshot.data!.data != null) {
+                      ProfileData profile = snapshot.data!.data!;
+                      String role = profile.roleName == 'Keeper' ? 'Nhân viên' : 'Chủ bãi xe';
+                      return  Row(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              RegularText(text: '$role - ${profile.parkingName}', fontSize: 15, color: AppColor.forText),
+                              SemiBoldText(text: profile.name!, fontSize: 25, color: Colors.black),
+                            ],
+                          ),
+                          SizedBox(
+                            width: 50,
+                            height: 50,
+                            child: CircleAvatar(
+                              backgroundImage: NetworkImage(profile.avatar == null ? 'https://cdn.pixabay.com/photo/2016/03/28/12/35/cat-1285634_1280.png' : profile.avatar!),
+                            ),
+                          )
+                        ],
+                      );
+                    }
+                    }
+                    return  const Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        RegularText(text: 'Nhân viên - Bãi xe tình thương ', fontSize: 15, color: AppColor.forText),
-                        SemiBoldText(text: 'Trần Ngọc Théng', fontSize: 25, color: Colors.black),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RegularText(text: '..... - ......', fontSize: 15, color: AppColor.forText),
+                            SemiBoldText(text: '......', fontSize: 25, color: Colors.black),
+                          ],
+                        ),
+                        SizedBox(
+                          width: 50,
+                          height: 50,
+                          child: CircleAvatar(
+                            backgroundImage: NetworkImage( 'https://cdn.pixabay.com/photo/2016/03/28/12/35/cat-1285634_1280.png'),
+                          ),
+                        )
                       ],
-                    ),
-                     SizedBox(
-                       width: 50,
-                       height: 50,
-                       child: CircleAvatar(
-                        backgroundImage: NetworkImage('https://cdn.pixabay.com/photo/2016/03/28/12/35/cat-1285634_1280.png'),
-                    ),
-                     )
-
-                  ],
+                    );
+                  }
                 ),
                 const SizedBox(height: 32,),
                 Row(

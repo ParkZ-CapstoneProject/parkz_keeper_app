@@ -3,9 +3,9 @@ import 'package:flutter/material.dart';
 import '../../../common/constanst.dart';
 import '../../../common/text/regular.dart';
 
-
 class StatusTag extends StatelessWidget {
-  const StatusTag({Key? key}) : super(key: key);
+  final String status;
+  const StatusTag({Key? key, required this.status}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -13,9 +13,25 @@ class StatusTag extends StatelessWidget {
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
-        color: AppColor.navyPale,
+        color: status == "OverTime" ? AppColor.paleOrange : AppColor.navyPale,
       ),
-      child: const RegularText(text: 'Thành công', fontSize: 13, color: Colors.green),
+      child:  RegularText(
+          fontSize: 13,
+          text: status == "Initial" ? 'Chờ xác nhận'
+              : status == "Success" ? 'Chờ vào bãi'
+              : status == "Check_In" ? "Chờ ra bãi"
+              : status == "Check_Out" ? "Chờ thanh toán"
+              : status == "OverTime" ? "Quá giờ"
+              :  status == "Done" ? "Hoàn thành"
+              : "Hủy đơn",
+          color: status == "Initial" ? AppColor.orange
+              : status == "Success" ? AppColor.navy
+              : status == "Check_In" ? AppColor.forText
+              : status == "OverTime" ? AppColor.forText
+              : status == "Check_Out" ? AppColor.orange
+              :  status == "Done" ? Colors.green
+              : Colors.red
+      ),
     );
   }
 }
