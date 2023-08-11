@@ -7,11 +7,13 @@ import 'package:parkz_keeper_app/common/text/medium.dart';
 import 'package:parkz_keeper_app/common/text/semi_bold.dart';
 import 'package:parkz_keeper_app/network/api.dart';
 
+import '../../../models/booking_detail_response.dart';
 import '../../../models/check_booking_response.dart';
 
 class BookingInfoPopup extends StatelessWidget {
   final int bookingId;
-  const BookingInfoPopup({super.key, required this.bookingId});
+  final User? user;
+  const BookingInfoPopup({super.key, required this.bookingId, this.user});
 
   String moneyFormat(double number) {
     String formattedNumber = number.toStringAsFixed(0); // Convert double to string and remove decimal places
@@ -144,6 +146,7 @@ class BookingInfoPopup extends StatelessWidget {
                           textColor: Colors.white,
                           backgroundColor: AppColor.navy),
                     ),
+                    user != null ?
                     SizedBox(
                       width: double.infinity,
                       child: MyButton(
@@ -181,6 +184,7 @@ class BookingInfoPopup extends StatelessWidget {
                           textColor: Colors.white,
                           backgroundColor: AppColor.forText),
                     )
+                        : const SizedBox.shrink()
 
                   ],
                 ),

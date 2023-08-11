@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import '../common/utils/util_widget.dart';
 import '../models/base_response.dart';
 import '../models/booking_detail_response.dart';
+import '../models/booking_response.dart';
 import '../models/bookings_response.dart';
 import '../models/check_booking_response.dart';
 import '../models/floors_response.dart';
@@ -29,6 +30,10 @@ Future<LoginResponse> login(String email, String password, context) async {
       'email': email,
       'password': password
     };
+    debugPrint('---Request login---');
+    debugPrint(jsonEncode(requestBody));
+
+
     var response = await http.post(
         Uri.parse('$host/api/business-manager-authentication'),
         headers: {
@@ -51,6 +56,8 @@ Future<LoginResponse> login(String email, String password, context) async {
         int userID = int.parse(jsonMap['_id']);
         //write user id
         await storage.write(key: 'userID', value: userID.toString());
+
+        updateDeviceToken();
 
         Utils(context).stopLoading();
         Utils(context).showSuccessSnackBar('${loginResponse.message}');
@@ -99,7 +106,7 @@ Future<BookingDetailResponse> getBookingDetail(id) async {
 }
 
 // Check in cho customer
-Future<bool> checkInBooking(int bookingId, context) async {
+Future<String> checkInBooking(int bookingId, context) async {
   try {
       Map<String, dynamic> requestBody = {
         "bookingId": bookingId
@@ -116,13 +123,13 @@ Future<bool> checkInBooking(int bookingId, context) async {
       );
       if (response.statusCode >= 200 && response.statusCode <300) {
         Utils(context).showSuccessSnackBar('Checkin Thành công');
-        return true;
+        return 'true';
       }
         if(response.statusCode >= 400 && response.statusCode <500){
           final responseJson = jsonDecode(response.body);
           BaseResponse bookingResponse =  BaseResponse.fromJson(responseJson);
-          Utils(context).showWarningSnackBar('${bookingResponse.message}');
-          throw Exception('Fail to checkin: Status code ${response.statusCode} Message ${response.body}');
+          Utils(context).showWarningSnackBar(bookingResponse.message);
+          return bookingResponse.message.toString();
         }else{
           Utils(context).showErrorSnackBar('Checkin Thất bại');
           throw Exception('Fail to checkin: Status code ${response.statusCode} Message ${response.body}');
@@ -390,10 +397,14 @@ Future<bool> doneBooking(int bookingId) async {
 
 
 // Lấy profile
-Future<ProfileResponse?> getProfile(context) async {
+Future<ProfileResponse?> getProfile() async {
   try {
     String? userID = await storage.read(key: 'userID');
     String? token = await storage.read(key: 'token');
+    debugPrint('---Request get profile user : $userID---');
+    debugPrint('Token : $token');
+
+
     if(userID != null && token != null){
       final response = await http.get(
         Uri.parse('$host/api/keeper-account-management/$userID'),
@@ -408,15 +419,7 @@ Future<ProfileResponse?> getProfile(context) async {
         await storage.write(key: 'parkingId', value: profileResponse.data!.parkingId.toString());
         return profileResponse;
       } else {
-        if(response.statusCode >= 400 && response.statusCode <500){
-          final responseJson = jsonDecode(response.body);
-          ProfileResponse depositResponse = ProfileResponse.fromJson(responseJson);
-          Utils(context).showWarningSnackBar('${depositResponse.message}');
-        }else{
-          throw Exception('Fail to get profile info: Status code ${response.statusCode} Message ${response.body}');
-        }
-        throw Exception(
-            'Failed to fetch profile info. Status code: ${response.statusCode}');
+        throw Exception('Fail to get profile info: Status code ${response.statusCode} Message ${response.body}');
       }
     }
     return null;
@@ -464,8 +467,8 @@ Future<SlotsResponse> getSlotsParkingByFloor(id, startDateTime, endDateTime) asy
     debugPrint('EndTimeBooking : $endDateTime');
 
     final response = await http.get(
-      Uri.parse('$host/api/parking-slots/floors/floorId/parking-slots?FloorId=$id&StartTimeBooking=$startDateTime&EndTimeBooking=$endDateTime'),
-      headers: {'accept': 'application/json'},
+      Uri.parse('$host/api/keeper/parking-slot/floors/floor/parking-slots/ver2/passerby?FloorId=$id&StartTimeBooking=$startDateTime&EndTimeBooking=$endDateTime'),
+      headers: {'accept': 'text/plain'},
     );
 
     if (response.statusCode == 200) {
@@ -478,5 +481,232 @@ Future<SlotsResponse> getSlotsParkingByFloor(id, startDateTime, endDateTime) asy
     throw Exception('Fail to get parking detail: $e');
   }
 }
+
+//update device token
+Future <void> updateDeviceToken() async {
+  String? deviceToken = await storage.read(key: 'DeviceToken');
+  String? userID = await storage.read(key: 'userID');
+  try{
+    if(deviceToken != null && userID != null){
+      int userId = int.parse(userID);
+      var response = await http.put(
+          Uri.parse('$host/api/DeviceToken'),
+          headers : {
+            'Content-Type': ' application/json',
+            'accept': ' */*'
+          },
+          body:
+          jsonEncode({
+            "userId": userId,
+            "devicetoken": deviceToken.toString()
+          })
+      );
+      if( response.statusCode == 204){
+        debugPrint('UpdatedDeviceToken Success with $deviceToken');
+      }
+    }
+
+  } catch (e){
+    throw Exception('Fail to update device token: $e');
+  }
+}
+
+Future<int?> createBooking(int slotId, DateTime  endTime, DateTime dateBook, guessName, guessPhone,licensePlate,vehicleName,color, context) async {
+
+  try {
+    Utils(context).startLoading();
+      Map<String, dynamic> requestBody = {
+        "bookingForPasserby": {
+          "parkingSlotId": slotId,
+          "endTime": endTime.toIso8601String(),
+          "dateBook": dateBook.toIso8601String(),
+          "guestName": guessName,
+          "guestPhone": guessPhone
+        },
+        "vehicleInformationForPasserby": {
+          "licensePlate": licensePlate,
+          "vehicleName": vehicleName,
+          "color": color,
+          "trafficId": 1 //auto xe hoi
+        }
+      };
+      // Print the request body before sending
+      debugPrint('---Request Body Booking---');
+      debugPrint(jsonEncode(requestBody));
+
+      var response = await http.post(
+        Uri.parse('$host/api/booking-management-for-keeper/create/passerby'),
+        headers : {
+          'accept' : 'text/plain',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode(requestBody),
+      );
+      if (response.statusCode >= 200 && response.statusCode <300) {
+        final responseJson = jsonDecode(response.body);
+        BookingResponse bookingResponse =  BookingResponse.fromJson(responseJson);
+        Utils(context).stopLoading();
+        return bookingResponse.data;
+      } else {
+        if(response.statusCode >= 400 && response.statusCode <500){
+          final responseJson = jsonDecode(response.body);
+          BookingResponse bookingResponse =  BookingResponse.fromJson(responseJson);
+          Utils(context).stopLoading();
+          Utils(context).showWarningSnackBar('${bookingResponse.message}');
+          return null;
+        }else{
+          Utils(context).stopLoading();
+          Utils(context).showWarningSnackBar('Không thể đồng bộ Device token ${response.statusCode}');
+          throw Exception('Fail to create booking: Status code ${response.statusCode} Message ${response.body}');
+        }
+      }
+
+  }catch (e){
+    throw Exception('Fail to create booking: $e');
+  }
+}
+
+//Update password
+Future<String> changePassword(String email, String password) async {
+  try {
+    Map<String, dynamic> requestBody ={
+      "email": email,
+      "newPassword": password
+    };
+    debugPrint('---Request update password---');
+    debugPrint(jsonEncode(requestBody));
+
+    final response = await http.put(
+        Uri.parse('$host/api/password-management/forgot-password'),
+        headers: {
+          'accept': 'text/plain',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode(requestBody)
+    );
+    if (response.statusCode >= 200 && response.statusCode <300) {
+      return 'true';
+    }else {
+      if(response.statusCode >= 400 && response.statusCode <500){
+        final responseJson = jsonDecode(response.body);
+        BaseResponse baseResponse = BaseResponse.fromJson(responseJson);
+        return baseResponse.message.toString();
+      }else{
+        throw Exception('Fail to Check out booking: Status code ${response.statusCode} Message ${response.body}');
+      }
+    }
+  } catch (e) {
+    throw Exception('Fail to Check out booking: $e');
+  }
+}
+// Disable slot
+Future<bool> disableSlot(int slotID) async {
+  try {
+    Map<String, dynamic> requestBody = {
+      "parkingSlotId": slotID,
+      "reason": "string"
+    };
+
+    final response = await http.post(
+        Uri.parse('$host/api/keeper/parking-slot/disable'),
+        headers: {
+          'accept': 'text/plain',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode(requestBody)
+    );
+    if (response.statusCode >= 200 && response.statusCode <300) {
+      return true;
+    }else {
+      debugPrint('Fail to disable slot: Status code ${response.statusCode} Message ${response.body}');
+      return false;
+    }
+  } catch (e) {
+    throw Exception('Fail to disable slot: $e');
+  }
+}
+
+// Disable slot
+Future<bool> enableSlot(int slotID) async {
+  try {
+    Map<String, dynamic> requestBody = {
+      "parkingSlotId": slotID,
+    };
+
+    final response = await http.put(
+        Uri.parse('$host/api/keeper/parking-slot/enable'),
+        headers: {
+          'accept': 'text/plain',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode(requestBody)
+    );
+    if (response.statusCode >= 200 && response.statusCode <300) {
+      return true;
+    }else {
+      debugPrint('Fail to enable slot: Status code ${response.statusCode} Message ${response.body}');
+      return false;
+    }
+  } catch (e) {
+    throw Exception('Fail to enable slot: $e');
+  }
+}
+
+// Change slot for come early case
+Future<bool> earlyChangeSlot(int slotID, int bookingID) async {
+  try {
+    Map<String, dynamic> requestBody = {
+      "bookingId": bookingID,
+      "parkingSlotId": slotID
+    };
+
+    final response = await http.put(
+        Uri.parse('$host/api/keeper/parking-slot/change/come-early'),
+        headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode(requestBody)
+    );
+    if (response.statusCode >= 200 && response.statusCode <300) {
+      return true;
+    }else {
+      debugPrint('Fail to enable slot: Status code ${response.statusCode} Message ${response.body}');
+      return false;
+    }
+  } catch (e) {
+    throw Exception('Fail to enable slot: $e');
+  }
+}
+
+// Change slot
+Future<bool> changeSlot(int slotID, int bookingID) async {
+  try {
+    Map<String, dynamic> requestBody = {
+      "bookingId": bookingID,
+      "parkingSlotId": slotID
+    };
+
+    final response = await http.put(
+        Uri.parse('$host/api/keeper/parking-slot/change'),
+        headers: {
+          'accept': '*/*',
+          'Content-Type': 'application/json'
+        },
+        body: jsonEncode(requestBody)
+    );
+    if (response.statusCode >= 200 && response.statusCode <300) {
+      return true;
+    }else {
+      debugPrint('Fail to enable slot: Status code ${response.statusCode} Message ${response.body}');
+      return false;
+    }
+  } catch (e) {
+    throw Exception('Fail to enable slot: $e');
+  }
+}
+
+
+
 
 

@@ -30,11 +30,11 @@ class ProfileHeader extends StatelessWidget {
             SizedBox(
               height: 20,
             ),
-            ProfilePic(
+            const ProfilePic(
               isEdited: false,
             ),
             FutureBuilder<ProfileResponse?>(
-                future: getProfile(context),
+                future: getProfile(),
                 builder: (myContext, snapshot) {
                   if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
                     if (snapshot.data!.data != null) {

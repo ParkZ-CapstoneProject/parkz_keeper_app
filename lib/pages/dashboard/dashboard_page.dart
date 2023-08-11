@@ -29,7 +29,7 @@ class _DashboardState extends State<Dashboard> {
               children: [
                 const SizedBox(height: 16,),
                 FutureBuilder<ProfileResponse?>(
-                  future: getProfile(context),
+                  future: getProfile(),
                     builder: (myContext, snapshot) {
                     if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
                     if (snapshot.data!.data != null) {

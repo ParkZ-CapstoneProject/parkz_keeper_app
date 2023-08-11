@@ -6,6 +6,7 @@ import 'package:parkz_keeper_app/common/utils/util_widget.dart';
 import 'package:parkz_keeper_app/pages/bookingdetail/component/booking_info_popup.dart';
 import 'package:parkz_keeper_app/pages/bookinglist/booking_list_page.dart';
 import 'package:parkz_keeper_app/pages/home/home_page.dart';
+import 'package:parkz_keeper_app/pages/parkingmap/map_page.dart';
 
 import '../../common/button/button_widget.dart';
 import '../../common/constanst.dart';
@@ -66,7 +67,7 @@ class _BookingPageState extends State<BookingPage> {
                 extendBodyBehindAppBar: true,
                 extendBody: true,
                 appBar: AppBar(
-                  automaticallyImplyLeading: false,
+                  automaticallyImplyLeading: true,
                   elevation: 0,
                   backgroundColor: Colors.transparent,
                   actions: [
@@ -144,10 +145,50 @@ class _BookingPageState extends State<BookingPage> {
                                 else if (booking.bookingDetails!.status == 'Success') {
                                   //Gọi checkin funtion
                                   debugPrint('checkin');
-                                  bool isSuccess = await checkInBooking(widget.bookingId, context);
-                                  if(isSuccess == true){
+                                  String successMessage = await checkInBooking(widget.bookingId, context);
+                                  if(successMessage == 'true'){
                                     setState(() {
                                     });
+                                  }else{
+                                    if(successMessage == 'Không thể check-in vào sớm. Tại vì slot vẫn đang có người đặt.'){
+                                      AwesomeDialog(
+                                        context: context,
+                                        dialogType: DialogType.warning,
+                                        animType: AnimType.bottomSlide,
+                                        title: 'Khách vẫn đang ở trong bãi.',
+                                        desc: 'Bạn có muốn đổi slot cho khách hàng đang checkin này?',
+                                        btnOkOnPress: () async {
+                                          Navigator.of(context).pop();
+                                          bool? isSuccess = await Navigator.push(context, MaterialPageRoute(builder: (context) =>  ParkingMapPage(bookingID: widget.bookingId, isEarly: true,)),);
+                                          if( isSuccess == true){
+                                            _refreshData();
+                                            Utils(context).showSuccessSnackBar('Chuyển slot thành công');
+                                          }else{
+                                            Utils(context).showErrorSnackBar('Chuyển slot thất bại');
+                                          }
+                                        },
+                                        btnCancelOnPress: () {},
+                                        btnCancelText: "Hủy",
+                                        btnOkText: "Đồng ý",
+                                      ).show();
+                                    }
+                                    if(successMessage == 'Đơn đặt xảy ra lỗi. Do slot đặt có đơn khác lấn giờ.'){
+                                      AwesomeDialog(
+                                        context: context,
+                                        dialogType: DialogType.warning,
+                                        animType: AnimType.bottomSlide,
+                                        title: 'Khách còn trong bãi',
+                                        desc: 'Bạn có muốn đổi slot cho khách hàng đang checkin này?',
+                                        btnOkOnPress: () {
+                                          Navigator.of(context).pop();
+                                          Navigator.push(context, MaterialPageRoute(builder: (context) =>  ParkingMapPage(bookingID: widget.bookingId, isEarly: false,)),);
+                                        },
+                                        btnCancelOnPress: () {},
+                                        btnCancelText: "Hủy",
+                                        btnOkText: "Đồng ý",
+                                      ).show();
+                                    }
+
                                   }
                                 }
 
@@ -158,7 +199,7 @@ class _BookingPageState extends State<BookingPage> {
                                     debugPrint('Check out tiền mặt');
                                     bool? isSuccess = await showDialog(
                                       context: context,
-                                      builder: (BuildContext context) => BookingInfoPopup(bookingId: widget.bookingId),
+                                      builder: (BuildContext context) => BookingInfoPopup(bookingId: widget.bookingId, user: booking.user),
                                     );
 
                                     if(isSuccess == true){
@@ -365,32 +406,41 @@ class _BookingPageState extends State<BookingPage> {
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  booking.user != null ?
+                                  Column(
                                     children: [
-                                      const MediumText(
-                                          text: 'Tên',
-                                          fontSize: 14,
-                                          color: AppColor.forText),
-                                      SemiBoldText(
-                                          text: booking.user!.name!,
-                                          fontSize: 14,
-                                          color: AppColor.forText)
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const MediumText(
+                                              text: 'Tên',
+                                              fontSize: 14,
+                                              color: AppColor.forText),
+                                          SemiBoldText(
+                                              text: booking.user!.name!,
+                                              fontSize: 14,
+                                              color: AppColor.forText)
+                                        ],
+                                      ),
+                                      const SizedBox(height: 30,),
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const MediumText(
+                                              text: 'Số điện thoại',
+                                              fontSize: 14,
+                                              color: AppColor.forText),
+                                          SemiBoldText(
+                                              text: booking.user!.phone!,
+                                              fontSize: 14,
+                                              color: AppColor.forText)
+                                        ],
+                                      ),
                                     ],
-                                  ),
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      const MediumText(
-                                          text: 'Số điện thoại',
-                                          fontSize: 14,
-                                          color: AppColor.forText),
-                                      SemiBoldText(
-                                          text: booking.user!.phone!,
-                                          fontSize: 14,
-                                          color: AppColor.forText)
-                                    ],
-                                  ),
+                                  )
+                                  : const SemiBoldText(text: 'Khách vãng lai', fontSize: 20, color: AppColor.navy),
+
+
                                   booking.bookingDetails!.guestPhone != null
                                       ? Column(
                                           children: [
@@ -434,6 +484,7 @@ class _BookingPageState extends State<BookingPage> {
                                           ],
                                         )
                                       : const SizedBox.shrink(),
+
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                     children: [
@@ -467,7 +518,7 @@ class _BookingPageState extends State<BookingPage> {
                             Container(
                               padding: const EdgeInsets.only(
                                   left: 30, right: 30, top: 20, bottom: 20),
-                              height: 140,
+                              height: 250,
                               decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(20),
                                   color: Colors.white),
@@ -552,6 +603,34 @@ class _BookingPageState extends State<BookingPage> {
                                       SemiBoldText(
                                           text: booking
                                               .parkingWithBookingDetailDto!.name!,
+                                          fontSize: 14,
+                                          color: AppColor.forText)
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const MediumText(
+                                          text: 'Ngày đặt',
+                                          fontSize: 14,
+                                          color: AppColor.forText),
+                                      SemiBoldText(
+                                          text:
+                                          DateFormat('dd/MM/yyyy').format(booking.bookingDetails!.startTime!),
+                                          fontSize: 14,
+                                          color: AppColor.forText)
+                                    ],
+                                  ),
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      const MediumText(
+                                          text: 'Giờ đặt',
+                                          fontSize: 14,
+                                          color: AppColor.forText),
+                                      SemiBoldText(
+                                          text:
+                                          '${DateFormat('HH:mm').format(booking.bookingDetails!.startTime!)} - ${DateFormat('HH:mm').format(booking.bookingDetails!.endTime!)}',
                                           fontSize: 14,
                                           color: AppColor.forText)
                                     ],

@@ -9,41 +9,220 @@ import '../../common/utils/util_widget.dart';
 import '../../models/floors_response.dart';
 import '../../models/slots_response.dart';
 import '../../network/api.dart';
+import '../bookingdetail/booking_detail_page.dart';
 import 'component/booking_slot_loading.dart';
 import 'component/slot.dart';
 import 'package:table_calendar/table_calendar.dart';
 
 
 class ParkingMapPage extends StatefulWidget {
+  final int? bookingID;
+  final bool? isEarly;
+
   const ParkingMapPage({
-    Key? key,
+    Key? key, this.bookingID, this.isEarly,
   }) : super(key: key);
 
   @override
   State<ParkingMapPage> createState() => _ParkingMapPageState();
   static String floorNameGlobal = '';
   static String slotNameGlobal = '';
-  static int slotId = -1;
 }
 
 
 class _ParkingMapPageState extends State<ParkingMapPage> {
   final ScrollController _horizontalScrollController = ScrollController();
   final ScrollController _verticalScrollController = ScrollController();
+
+  TextEditingController startTimeController = TextEditingController();
+  TextEditingController endTimeBookController = TextEditingController();
+  TextEditingController durationController = TextEditingController();
+
+  TextEditingController guessNameController = TextEditingController();
+  TextEditingController guessPhoneController = TextEditingController();
+  TextEditingController licensePlateController = TextEditingController();
+  TextEditingController vehicleNameController = TextEditingController();
+  TextEditingController colorController = TextEditingController();
+
+  FocusNode durationNode = FocusNode();
+
   final DateTime currentDate = DateTime.now();
 
   late List<Floor> floors = [];
   late Floor selectedFloor= Floor();
+  late ParkingSlot slotSelected = ParkingSlot();
+
 
   late List<ParkingSlot> slots = [];
 
   late DateTime startTime =  DateTime(currentDate.year, currentDate.month, currentDate.day, currentDate.hour, 0, 0);
   late DateTime endTime = startTime.add(const Duration(hours: 2));
+  late DateTime endTimeBook = endTime;
 
-  // late int _durationSelected = 0;
-  // late int _startTime = 0;
-  // late int _endTime = 0;
-  // late DateTime? _selectedDay = DateTime.now();
+  void _showGuessBookingDialog(startTimeValue,BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        startTimeController.text = DateFormat('HH:mm dd/MM/yyyy').format(startTime);
+
+        return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
+            ),
+            // insetPadding: const EdgeInsets.all(16),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  TextField(
+                    enabled: false,
+                    controller: startTimeController,
+                    readOnly: true,
+                    decoration: const InputDecoration(
+                      labelText: 'Giờ vào *',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColor.navy, width: 2),
+                      ),
+                    ),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColor.navy,
+                        fontSize: 16
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    enabled: false,
+                    controller: endTimeBookController,
+                    decoration: const InputDecoration(
+                      labelText: 'Giờ ra *',
+                      labelStyle: TextStyle(
+                          fontSize: 15,
+                          color: AppColor.navy
+                      ),
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColor.navy, width: 2),
+                      ),
+                    ),
+                    style: const TextStyle(
+                        fontWeight: FontWeight.w600,
+                        color: AppColor.navy,
+                        fontSize: 16
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    keyboardType: TextInputType.number,
+                    controller: durationController,
+                    focusNode: durationNode,
+                    decoration: const InputDecoration(
+                      labelText: 'Thời hạn trong bãi *',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColor.navy, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: guessNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Tên khách',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColor.navy, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: guessPhoneController,
+                    keyboardType: TextInputType.phone,
+                    decoration: const InputDecoration(
+                      labelText: 'Số điện thoại',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColor.navy, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: licensePlateController,
+                    decoration: const InputDecoration(
+                      labelText: 'Biển số xe *',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColor.navy, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: vehicleNameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Tên phương tiện',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColor.navy, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: colorController,
+                    decoration: const InputDecoration(
+                      labelText: 'Màu xe',
+                      border: OutlineInputBorder(
+                        borderSide: BorderSide(color: AppColor.navy, width: 2),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  MyButton(text: 'Đặt chỗ',
+                      function:  () async {
+                        print('${slotSelected.parkingSlotDto!.parkingSlotId!}');
+
+                        int slotId = slotSelected.parkingSlotDto!.parkingSlotId!;
+
+                        String guessNameBook = guessNameController.text;
+                        String guessPhoneBook = guessPhoneController.text;
+
+                        String licensePlate = licensePlateController.text;
+                        String vehicleName = vehicleNameController.text;
+                        String color = colorController.text;
+
+                        int? bookingId = await createBooking(slotId,
+                            endTimeBook,
+                            startTime,
+                            guessNameBook,
+                            guessPhoneBook,
+                            licensePlate,
+                            vehicleName,
+                            color,
+                            context);
+                        if(bookingId != null){
+                          debugPrint('BookingIDne: $bookingId');
+                          await Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>  BookingPage(bookingId: bookingId,)),
+                          );
+                        }
+
+                        Navigator.of(context).pop();
+
+
+                      }, textColor: Colors.white, backgroundColor: AppColor.navy
+                  )
+                ],
+              ),
+            )
+        );
+
+
+      },
+    );
+  }
 
 
   Future<void> _getSlots(id, startTime, endTime) async {
@@ -75,6 +254,19 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
   @override
   void initState() {
     _getFloors();
+    durationNode.addListener(() {
+      if (!durationNode.hasFocus) {
+        if(durationController.text != ''){
+          print('haha');
+          int duration = int.parse(durationController.text);
+
+          setState(() {
+            endTimeBook = startTime.add(Duration(hours: duration));
+            endTimeBookController.text =  DateFormat('HH:mm dd/MM/yyyy').format(endTimeBook);
+          });
+        }
+      }
+    });
     super.initState();
   }
 
@@ -82,6 +274,16 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
   void dispose() {
     _horizontalScrollController.dispose();
     _verticalScrollController.dispose();
+    durationController.dispose();
+    endTimeBookController.dispose();
+    startTimeController.dispose();
+
+     guessNameController.dispose();
+     guessPhoneController.dispose();
+     licensePlateController.dispose();
+     vehicleNameController.dispose();
+     colorController.dispose();
+
     super.dispose();
   }
 
@@ -92,21 +294,19 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
       endTime = startTime.add(const Duration(hours: 2));
     });
   }
-
-  void showMenuBooking(){
-
+  void showMenuActivate(){
     showModalBottomSheet<void>(
       context: context,
       shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
 
       builder: (context) {
         return SizedBox(
-          height: 200,
+          height: 150,
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child:  Column(
               children: [
-                const SizedBox(height: 16,),
+                const SizedBox(height: 8,),
                 Center(
                   child: Container(
                       width: 50,
@@ -116,21 +316,111 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                           color: AppColor.fadeText)
                   ),
                 ),
-                const SizedBox(height: 24,),
+                const SizedBox(height: 8,),
+                const Divider(color: AppColor.fadeText, thickness: 0.5, indent: 8, endIndent: 8),
+                const SizedBox(height: 8,),
                 InkWell(
-                    onTap: () {
-
+                    onTap: () async {
+                      bool isSuccess = await enableSlot(slotSelected.parkingSlotDto!.parkingSlotId!);
+                      Navigator.pop(context);
+                      if(isSuccess == true){
+                        _refreshData();
+                        Utils(context).showSuccessSnackBar('Kích hoạt thành công');
+                      }else{
+                        Utils(context).showErrorSnackBar('Kích hoạt thất bại');
+                      }
                     },
-                    child: const SemiBoldText(text: 'Đặt chỗ cho khách', fontSize: 18, color: AppColor.forText)
+                    child: const SizedBox(
+                        height: 60,
+                        width: double.infinity,
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(left: 26.0, right: 35),
+                              child: Icon(Icons.check_circle_sharp, size: 30, color: Colors.green,),
+                            ),
+                            RegularText(text: 'Kích hoạt chỗ', fontSize: 18, color: Colors.green),
+                          ],
+                        )
+                    )
                 ),
                 const SizedBox(height: 18,),
-                const Divider(color: AppColor.fadeText, thickness: 1, indent: 8, endIndent: 8),
-                const SizedBox(height: 18,),
-                InkWell(
-                  onTap: () {
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
 
+  void showMenuBooking(){
+
+    showModalBottomSheet<void>(
+      context: context,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(30))),
+
+      builder: (context) {
+        return SizedBox(
+          height: 210,
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child:  Column(
+              children: [
+                const SizedBox(height: 8,),
+                Center(
+                  child: Container(
+                      width: 50,
+                      height: 7,
+                      decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(8),
+                          color: AppColor.fadeText)
+                  ),
+                ),
+                const SizedBox(height: 8,),
+                const Divider(color: AppColor.fadeText, thickness: 0.5, indent: 8, endIndent: 8),
+                const SizedBox(height: 8,),
+                InkWell(
+                    onTap: () {
+                      _showGuessBookingDialog(startTime,context);
+                    },
+                    child: const SizedBox(
+                        height: 60,
+                        width: double.infinity,
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(left: 26.0, right: 35),
+                              child: Icon(Icons.note_alt_outlined,  color: AppColor.navy, size: 30,),
+                            ),
+                            RegularText(text: 'Đặt chỗ cho khách', fontSize: 18, color: AppColor.navy),
+                          ],
+                        )
+                    )
+                ),
+                InkWell(
+                  onTap: () async {
+                    bool isSuccess = await disableSlot(slotSelected.parkingSlotDto!.parkingSlotId!);
+                    Navigator.pop(context);
+                    if(isSuccess == true){
+                      _refreshData();
+                      Utils(context).showSuccessSnackBar('Vô hiệu thành công');
+                    }else{
+                      Utils(context).showErrorSnackBar('Vô hiệu thất bại');
+                    }
                   },
-                    child: const SemiBoldText(text: 'Vô hiệu hóa slot', fontSize: 18, color: AppColor.forText)
+                    child: const SizedBox(
+                      height: 60,
+                        width: double.infinity,
+                        child: Row(
+                          children: [
+                            Padding(
+                              padding: EdgeInsets.only(left: 26.0, right: 35),
+                              child: Icon(Icons.handyman, size: 30, color: AppColor.forText,),
+                            ),
+                            RegularText(text: 'Vô hiệu hóa slot', fontSize: 18, color: AppColor.forText),
+                          ],
+                        )
+                    )
                 ),
                 const SizedBox(height: 18,),
               ],
@@ -184,7 +474,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const RegularText(text: 'Ngày vào', fontSize: 14, color: AppColor.forText),
+                          const RegularText(text: 'Ngày', fontSize: 14, color: AppColor.forText),
 
                           const SizedBox(height: 2,),
 
@@ -205,7 +495,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children:  [
                           const RegularText(
-                              text: 'Giờ vào',
+                              text: 'Từ',
                               fontSize: 14,
                               color: AppColor.forText),
                           const SizedBox(
@@ -397,7 +687,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                   height: 24,
                 ),
                 const SemiBoldText(
-                    text: 'Chọn giờ vào',
+                    text: 'Bắt đầu từ',
                     fontSize: 15,
                     color: AppColor.forText),
                 const SizedBox(height: 8,),
@@ -527,82 +817,146 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
   @override
   Widget build(BuildContext context) {
     int selectedSlotIndex = -1;
-    ParkingSlot slotSelected = ParkingSlot();
     return Scaffold(
       appBar: AppBar(
         elevation: 0.0,
-        leading: const BackButton(color: AppColor.forText),
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
         title: const SemiBoldText(
             text: 'Đặt chỗ', fontSize: 20, color: AppColor.forText),
         bottom: PreferredSize(
-            preferredSize: const Size.fromHeight(50),
+            preferredSize: const Size.fromHeight(120),
             child: StatefulBuilder(
               builder: (context, setState) {
                 return Padding(
                   padding: const EdgeInsets.all(8.0),
-                  child: Row(
+                  child: Column(
                     children: [
-                      Flexible(
-                        flex: 6,
-                        child: Container(
-                          padding: const EdgeInsets.only(left: 18, bottom: 8, top: 8),
-                          margin: const EdgeInsets.only(
-                            left: 8,
-                            right: 8,
-                          ),
-                          height: 49,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: AppColor.navyPale),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: [
-                              Flexible(
-                                child: DropdownButton<Floor>(
-                                  isExpanded: true,
-                                  value: selectedFloor,
-                                  onChanged: (newValue) {
-                                    setState(() {
-                                      selectedFloor = newValue!;
-                                      _getSlots(selectedFloor.floorId, startTime, endTime);
-                                    });
-                                  },
-                                  items: floors.map((floor) {
-                                    return DropdownMenuItem<Floor>(
-                                      value: floor,
-                                      child: Text(floor.floorName!),
-                                    );
-                                  }).toList(),
-                                ),
+                      Row(
+                        children: [
+                          Flexible(
+                            flex: 6,
+                            child: Container(
+                              padding: const EdgeInsets.only(left: 18, bottom: 8, top: 8),
+                              margin: const EdgeInsets.only(
+                                left: 8,
+                                right: 8,
                               ),
-                              IconButton(
-                                padding: const EdgeInsets.only(bottom: 3),
-                                icon: const Icon(
-                                  Icons.refresh,
-                                ),
-                                onPressed: () {
+                              height: 49,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: AppColor.navyPale),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: [
+                                  Flexible(
+                                    child: DropdownButton<Floor>(
+                                      isExpanded: true,
+                                      value: selectedFloor,
+                                      onChanged: (newValue) {
+                                        setState(() {
+                                          selectedFloor = newValue!;
+                                          _getSlots(selectedFloor.floorId, startTime, endTime);
+                                        });
+                                      },
+                                      items: floors.map((floor) {
+                                        return DropdownMenuItem<Floor>(
+                                          value: floor,
+                                          child: Text(floor.floorName!),
+                                        );
+                                      }).toList(),
+                                    ),
+                                  ),
+                                  IconButton(
+                                    padding: const EdgeInsets.only(bottom: 3),
+                                    icon: const Icon(
+                                      Icons.refresh,
+                                    ),
+                                    onPressed: () {
+                                      _refreshData();
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
 
-                                  _refreshData();
-                                },
-                              ),
-                            ],
-                          ),
-                        ),
+                          Flexible(
+                            flex: 1,
+                            child: Container(
+                              width: 49,
+                              height: 49,
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: AppColor.navy),
+                              child: IconButton(onPressed: () {
+                                showDateFilter();
+                              }, icon: const Icon(Icons.calendar_month, color: AppColor.navyPale,)),
+                            ),
+                          )
+                        ],
                       ),
-                      
-                      Flexible(
-                        flex: 1,
-                        child: Container(
-                          width: 49,
-                          height: 49,
-                          decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(10),
-                              color: AppColor.navy),
-                          child: IconButton(onPressed: () {
-                            showDateFilter();
-                          }, icon: const Icon(Icons.calendar_month, color: AppColor.navyPale,)),
+                      const SizedBox(height: 8,),
+                      SizedBox(
+                        height: 50,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+
+                          children: [
+                            Row(
+                              children: [
+                                const RegularText(text: 'Ngày ', fontSize: 14, color: AppColor.forText),
+
+                                const SizedBox(width: 2,),
+
+                                SemiBoldText(
+                                    text: DateFormat('dd/MM').format(startTime),
+                                    fontSize: 16,
+                                    color: AppColor.navy)
+                              ],
+                            ),
+                            const VerticalDivider(
+                              thickness: 1.5,
+                              color: AppColor.navyPale,
+                              endIndent: 3,
+                              indent: 3,
+                            ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children:  [
+                                const RegularText(
+                                    text: 'Từ ',
+                                    fontSize: 14,
+                                    color: AppColor.forText),
+                                const SizedBox(
+                                  width: 2,
+                                ),
+                                SemiBoldText(
+                                    text: DateFormat('HH:mm').format(startTime), fontSize: 16, color: AppColor.navy)
+                              ],
+                            ),
+
+                            const VerticalDivider(thickness: 1.5, color: AppColor.navyPale, endIndent: 3, indent: 3,),
+
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children:  [
+                                const RegularText(
+                                    text: 'Đến ',
+                                    fontSize: 14,
+                                    color: AppColor.forText),
+                                const SizedBox(
+                                  width: 2,
+                                ),
+                                SemiBoldText(
+                                    text: DateFormat('HH:mm').format(endTime), fontSize: 16, color: AppColor.navy)
+                              ],
+                            ),
+                          ],
                         ),
                       )
                     ],
@@ -611,21 +965,42 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
               },
             )),
       ),
-      // bottomNavigationBar: Padding(
-      //   padding:
-      //       const EdgeInsets.only(left: 30.0, right: 30, bottom: 16, top: 16),
-      //   child: MyButton(
-      //       text: 'Tiếp tục',
-      //       function: () {
-      //         ParkingMapPage.slotNameGlobal =
-      //             slotSelected.parkingSlotDto!.name!;
-      //         ParkingMapPage.slotId =
-      //             slotSelected.parkingSlotDto!.parkingSlotId!;
-      //         ParkingMapPage.floorNameGlobal = selectedFloor.floorName!;
-      //       },
-      //       textColor: Colors.white,
-      //       backgroundColor: AppColor.navy),
-      // ),
+
+      bottomNavigationBar: widget.bookingID != null ?BottomAppBar(
+        color: Colors.white,
+        child: SizedBox(
+          height: 80,
+          child: Center(
+            child: Container(
+              height: 40,
+              width: double.infinity,
+              margin: const EdgeInsets.only(left: 24, right: 24),
+              child: MyButton(text: 'Chuyển chỗ',
+                  function: () async {
+                    print('slotSelected: ${slotSelected.parkingSlotDto!.parkingSlotId}');
+                    if(widget.isEarly == true && slotSelected.parkingSlotDto != null ){
+                    bool isSuccess = await earlyChangeSlot(slotSelected.parkingSlotDto!.parkingSlotId!, widget.bookingID!);
+                    if (isSuccess == true){
+                       Navigator.pop(context, true);
+                    } else {
+                      Utils(context).showErrorSnackBar('Chuyển slot thất bại');
+                    }
+                    }else if(widget.isEarly == false &&  slotSelected.parkingSlotDto != null ){
+                      bool isSuccess = await changeSlot(slotSelected.parkingSlotDto!.parkingSlotId!, widget.bookingID!);
+                      if (isSuccess == true){
+                         Navigator.pop(context, true);
+                      } else {
+                        Utils(context).showErrorSnackBar('Chuyển slot thất bại');
+                      }
+                }
+              }
+                  , textColor: Colors.white, backgroundColor: AppColor.navy),
+            ),
+          )
+        ),
+      ) : const SizedBox.shrink(),
+
+
       body: FutureBuilder<SlotsResponse>(
           future: getSlotsParkingByFloor(
               selectedFloor.floorId, startTime.toIso8601String(), endTime.toIso8601String()),
@@ -640,7 +1015,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                 height: 310,
                 child: Center(
                   child: SemiBoldText(
-                      text: '[E]Không có slot trong bãi xe',
+                      text: 'Không có slot trong ngày giờ này',
                       fontSize: 19,
                       color: AppColor.forText),
                 ),
@@ -651,8 +1026,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
               if (snapshot.data!.data!.isNotEmpty) {
                 slots = snapshot.data!.data!;
                 slots.sort(
-                  (a, b) => a.parkingSlotDto!.columnIndex!
-                      .compareTo(b.parkingSlotDto!.columnIndex!),
+                  (a, b) => a.parkingSlotDto!.columnIndex!.compareTo(b.parkingSlotDto!.columnIndex!),
                 );
                 int maxColumnIndex = 0;
                 int maxRowIndex = 0;
@@ -673,34 +1047,36 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                   for (int rowIndex = 0; rowIndex <= maxRowIndex; rowIndex++) {
                     List<DataCell> myCells = [];
 
-                    for (int cellIndex = 0;
-                        cellIndex <= maxColumnIndex;
-                        cellIndex++) {
+                    for (int cellIndex = 0; cellIndex <= maxColumnIndex; cellIndex++) {
+
                       ParkingSlot? slot = slots.firstWhere(
                         (element) =>
                             element.parkingSlotDto?.columnIndex == cellIndex &&
                             element.parkingSlotDto?.rowIndex == rowIndex,
                         orElse: () => ParkingSlot(),
                       );
+
                       if (slot.parkingSlotDto != null) {
+
                         myCells.add(
                           DataCell(
-                            onLongPress: () {
+
+                            onLongPress:  widget.bookingID == null ? () {
                               setState(() {
                                 selectedSlotIndex = rowIndex * 10 + cellIndex;
-                                if (slot.isBooked == 0) {
                                   slotSelected = slot;
-                                } else {
-                                  Utils(context).showWarningSnackBar('Vui lòng chọn chỗ khác');
-                                }
                               });
-                              showMenuBooking();
-                              },
+                              if(slotSelected.isBooked == 2){
+                                showMenuActivate();
+                              }else{
+                                showMenuBooking();
+                              }
+                              } : null,
 
                             onTap: () {
                               setState(() {
-                                selectedSlotIndex = rowIndex * 10 + cellIndex;
                                 if (slot.isBooked == 0) {
+                                  selectedSlotIndex = rowIndex * 10 + cellIndex;
                                   slotSelected = slot;
                                 } else {
                                   Utils(context).showWarningSnackBar('Vui lòng chọn chỗ khác');
@@ -709,13 +1085,13 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                             },
 
                             Slot(
-                                isSelected: selectedSlotIndex ==
-                                    rowIndex * 10 + cellIndex,
+                                isSelected: selectedSlotIndex == rowIndex * 10 + cellIndex,
                                 slotId: slot.parkingSlotDto!.parkingSlotId!,
                                 isBooked: slot.isBooked!,
                                 srow: slot.parkingSlotDto!.rowIndex!,
                                 scell: slot.parkingSlotDto!.columnIndex!,
-                                name: slot.parkingSlotDto!.name!),
+                                name: slot.parkingSlotDto!.name!,
+                                isBackup: slot.parkingSlotDto!.isBackup!,),
                           ),
                         );
                       } else {

@@ -13,6 +13,7 @@ class Slot extends StatefulWidget {
   final int slotId;
   final int isBooked;
   final bool isSelected;
+  final bool isBackup;
   const Slot(
       {Key? key,
         required this.isSelected,
@@ -20,7 +21,8 @@ class Slot extends StatefulWidget {
         required this.isBooked,
         required this.srow,
         required this.scell,
-        required this.name})
+        required this.name,
+        required this.isBackup})
       : super(key: key);
 
   @override
@@ -30,9 +32,10 @@ class Slot extends StatefulWidget {
 class _SlotState extends State<Slot> {
   @override
   Widget build(BuildContext context) {
+    print('Slot ID ${widget.slotId} + isBooked : ${widget.isBooked}');
     return Stack(
       children: [
-        widget.isSelected == true && widget.isBooked == 0
+        widget.isSelected == true
             ? Container(
           decoration: BoxDecoration(
               gradient: LinearGradient(colors: [
@@ -57,38 +60,38 @@ class _SlotState extends State<Slot> {
                     height: 55, width: 114)
                     : widget.isBooked == 2
                     ? const Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.warning,
-                        color: AppColor.orange,
-                        size: 50,
-                      ),
-                      SizedBox(height: 8,),
-                      SemiBoldText(
-                          text: 'Đang bảo trì',
-                          fontSize: 15,
-                          color: AppColor.orange),
-                      SizedBox(height: 8,),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.warning,
+                            color: AppColor.orange,
+                            size: 50,
+                          ),
+                          SizedBox(height: 8,),
+                          SemiBoldText(
+                              text: 'Đang bảo trì',
+                              fontSize: 15,
+                              color: AppColor.orange),
+                          SizedBox(height: 8,),
 
-                    ],
-                  ),
+                        ],
+                      ),
                 )
                     : const SizedBox(
                   height: 55,
                   width: 114,
                 ),
                 widget.isBooked != 2 ? SemiBoldText(
-                    text: widget.name,
+                    text: '${widget.isBackup == true ? '[BACKUP] ' : ''}${widget.name}',
                     fontSize: 15,
                     color: AppColor.forText,
                     align: TextAlign.right) : const SizedBox.shrink(),
                 widget.isBooked != 2 ? RegularText(
                     text: 'Hàng ${widget.srow + 1}, Cột ${widget.scell + 1}',
                     color: AppColor.forText,
-                    fontSize: 12) : const SizedBox.shrink(),
+                    fontSize: 10) : const SizedBox.shrink(),
               ],
             )),
       ],

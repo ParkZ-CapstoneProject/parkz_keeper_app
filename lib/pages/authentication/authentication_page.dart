@@ -25,7 +25,9 @@ class _AuthenticationPageState extends State<AuthenticationPage> {
   Future<void> submitLogin(context) async {
     String email = emailController.text;
     String password = passwordController.text;
-    LoginResponse loginSuccess = await login(email, password, context);
+    AuthenticationPage.email = email;
+
+        LoginResponse loginSuccess = await login(email, password, context);
 
     if (loginSuccess.data!.token != null) {
       Navigator.pushAndRemoveUntil(

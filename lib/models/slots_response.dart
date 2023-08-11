@@ -67,6 +67,7 @@ class ParkingSlotDto {
   final int? rowIndex;
   final int? columnIndex;
   final int? floorId;
+  final bool? isBackup;
 
   ParkingSlotDto({
     this.parkingSlotId,
@@ -75,6 +76,7 @@ class ParkingSlotDto {
     this.rowIndex,
     this.columnIndex,
     this.floorId,
+    this.isBackup,
   });
 
   factory ParkingSlotDto.fromJson(Map<String, dynamic> json) => ParkingSlotDto(
@@ -84,6 +86,7 @@ class ParkingSlotDto {
     rowIndex: json["rowIndex"],
     columnIndex: json["columnIndex"],
     floorId: json["floorId"],
+    isBackup: json["isBackup"],
   );
 
   Map<String, dynamic> toJson() => {
@@ -93,5 +96,6 @@ class ParkingSlotDto {
     "rowIndex": rowIndex,
     "columnIndex": columnIndex,
     "floorId": floorId,
+    "isBackup": isBackup,
   };
 }
