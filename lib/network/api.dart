@@ -140,10 +140,14 @@ Future<String> checkInBooking(int bookingId, context) async {
 }
 
 //Get booking list all
-Future<BookingsResponse?> getBookingList(context) async {
+Future<BookingsResponse?> getBookingList() async {
   try {
     String? userID = await storage.read(key: 'userID');
     String? token = await storage.read(key: 'token');
+    debugPrint('-------- Get booking list ---------');
+    debugPrint('User ID : $userID');
+    debugPrint('User Token : $token');
+
     if(userID != null && token != null){
       final response = await http.get(
         Uri.parse('$host/api/booking-management-for-keeper/$userID/parkings?pageNo=1&pageSize=100'),
@@ -170,7 +174,7 @@ Future<BookingsResponse?> getBookingList(context) async {
 
 
 //Get booking list by filter
-Future<BookingsResponse?> getBookingByFilter(dateFilter, status, context) async {
+Future<BookingsResponse?> getBookingByFilter(dateFilter, status) async {
   try {
     String? userID = await storage.read(key: 'userID');
     String? token = await storage.read(key: 'token');
@@ -198,12 +202,17 @@ Future<BookingsResponse?> getBookingByFilter(dateFilter, status, context) async 
   }
 }
 
-// Get booking list by search
-Future<BookingsResponse?> getBookingBySearch(String searchString, context) async {
+// Get booking list by search string
+Future<BookingsResponse?> getBookingBySearch(String searchString) async {
   try {
     String? userID = await storage.read(key: 'userID');
     String? token = await storage.read(key: 'token');
-    if(userID != null && token != null && searchString.trim() != ''){
+    if(userID != null && token != null){
+      debugPrint('-------- Get booking list by search ---------');
+      debugPrint('User ID : $userID');
+      debugPrint('User Token : $token');
+      debugPrint('User searchString : $searchString');
+
       final response = await http.get(
         Uri.parse('$host/api/booking-management-for-keeper/keeper/$userID?searchString=$searchString'),
         headers: {

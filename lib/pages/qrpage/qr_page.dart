@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:parkz_keeper_app/common/text/medium.dart';
 import 'package:parkz_keeper_app/common/utils/util_widget.dart';
 import 'package:qr_code_scanner/qr_code_scanner.dart';
 import 'dart:developer';
@@ -6,6 +7,8 @@ import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 
+import '../../common/constanst.dart';
+import '../../common/text/semi_bold.dart';
 import '../bookingdetail/booking_detail_page.dart';
 
 class QRViewExample extends StatefulWidget {
@@ -34,6 +37,14 @@ class _QRViewExampleState extends State<QRViewExample> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white12,
+      appBar: AppBar(
+        elevation: 0.0,
+        leading:  IconButton(icon: const Icon(Icons.arrow_back_outlined),color: AppColor.forText, onPressed: () { Navigator.pop(context);  },),
+        backgroundColor: Colors.white,
+        title: const SemiBoldText(
+            text: 'Quét QR', fontSize: 20, color: AppColor.forText),
+      ),
       body: Column(
         children: <Widget>[
           Expanded(flex: 4, child: _buildQrView(context)),
@@ -44,10 +55,8 @@ class _QRViewExampleState extends State<QRViewExample> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: <Widget>[
-                  if (result != null)
-                    Text('Barcode Type: QR   Data: ${result!.code}')
-                  else
-                    const Text('Scan a code'),
+                  const SizedBox(height: 16,),
+                  const MediumText(text: 'Nhân viên quét mã QR của khách hàng \n để checkin và checkout cho họ', fontSize: 10, color: AppColor.orange, align: TextAlign.center),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -59,10 +68,25 @@ class _QRViewExampleState extends State<QRViewExample> {
                               await controller?.toggleFlash();
                               setState(() {});
                             },
+                            style: ElevatedButton.styleFrom(
+                              elevation: 0.0,
+                              backgroundColor: AppColor.fadeText,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50.0),
+                              ),
+                            ),
                             child: FutureBuilder(
                               future: controller?.getFlashStatus(),
                               builder: (context, snapshot) {
-                                return Text('Flash: ${snapshot.data}');
+                                return Row(
+                                  children: [
+                                    const Icon(Icons.flash_on, size: 20),
+                                    const SizedBox(width: 6,),
+                                    MediumText(text: snapshot.data == true ? 'Tắt đèn' : 'Mở đèn', color: Colors.white, fontSize: 12,),
+                                    const SizedBox(width: 6,),
+                                  ],
+                                );
                               },
                             )),
                       ),
@@ -73,43 +97,30 @@ class _QRViewExampleState extends State<QRViewExample> {
                               await controller?.flipCamera();
                               setState(() {});
                             },
+                            style: ElevatedButton.styleFrom(
+                              elevation: 0.0,
+                              backgroundColor: AppColor.paleOrange,
+                              foregroundColor: Colors.white,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(50.0),
+                              ),
+                            ),
                             child: FutureBuilder(
                               future: controller?.getCameraInfo(),
                               builder: (context, snapshot) {
                                 if (snapshot.data != null) {
-                                  return Text(
-                                      'Camera facing ${describeEnum(snapshot.data!)}');
+                                  return Row(
+                                    children: [
+                                      Icon(describeEnum(snapshot.data!) == 'back' ? Icons.camera_alt : Icons.camera_enhance, size: 20),
+                                      const SizedBox(width: 6,),
+                                      const Text('Lật camera'),
+                                    ],
+                                  );
                                 } else {
                                   return const Text('loading');
                                 }
                               },
                             )),
-                      )
-                    ],
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      Container(
-                        margin: const EdgeInsets.all(8),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await controller?.pauseCamera();
-                          },
-                          child: const Text('pause',
-                              style: TextStyle(fontSize: 20)),
-                        ),
-                      ),
-                      Container(
-                        margin: const EdgeInsets.all(8),
-                        child: ElevatedButton(
-                          onPressed: () async {
-                            await controller?.resumeCamera();
-                          },
-                          child: const Text('resume',
-                              style: TextStyle(fontSize: 20)),
-                        ),
                       )
                     ],
                   ),
@@ -151,6 +162,7 @@ class _QRViewExampleState extends State<QRViewExample> {
       setState(() {
         result = scanData;
         if(result!.code!.contains('pz')){
+          controller.pauseCamera();
           int bookingId = int.parse(result!.code!.split('-')[1]);
           Navigator.pushReplacement(
             context,

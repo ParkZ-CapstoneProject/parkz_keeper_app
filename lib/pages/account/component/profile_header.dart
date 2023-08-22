@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:parkz_keeper_app/pages/account/component/profile_pic.dart';
 
 import '../../../common/text/regular.dart';
 import '../../../common/text/semi_bold.dart';
@@ -23,24 +22,28 @@ class ProfileHeader extends StatelessWidget {
         ], begin: Alignment.topLeft, end: Alignment.bottomRight),
       ),
       child: Padding(
-        padding: EdgeInsets.only(top: 30.0, bottom: 45),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            SizedBox(
-              height: 20,
-            ),
-            const ProfilePic(
-              isEdited: false,
-            ),
-            FutureBuilder<ProfileResponse?>(
-                future: getProfile(),
-                builder: (myContext, snapshot) {
-                  if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
-                    if (snapshot.data!.data != null) {
-                      ProfileData profile = snapshot.data!.data!;
-                      String role = profile.roleName == 'Keeper' ? 'Nhân viên' : 'Chủ bãi xe';
-                      return Column(
+        padding: const EdgeInsets.only(top: 30.0, bottom: 45),
+        child: FutureBuilder<ProfileResponse?>(
+            future: getProfile(),
+            builder: (myContext, snapshot) {
+              if (snapshot.hasData && snapshot.connectionState == ConnectionState.done) {
+                if (snapshot.data!.data != null) {
+                  ProfileData profile = snapshot.data!.data!;
+                  String role = profile.roleName == 'Keeper' ? 'Nhân viên' : 'Chủ bãi xe';
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const SizedBox(
+                        height: 20,
+                      ),
+                      SizedBox(
+                        width: 120,
+                        height: 120,
+                        child: CircleAvatar(
+                          backgroundImage: NetworkImage(profile.avatar == null ? 'https://cdn.pixabay.com/photo/2016/03/28/12/35/cat-1285634_1280.png' : profile.avatar!),
+                        ),
+                      ),
+                      Column(
                         children: [
                           SemiBoldText(
                               text: profile.name!,
@@ -57,25 +60,13 @@ class ProfileHeader extends StatelessWidget {
                               fontSize: 12,
                               color: Colors.white)
                         ],
-                      );
-                    }
-                  }
-                  return const Column(
-                    children: [
-                      SemiBoldText(
-                          text: '-------',
-                          fontSize: 20,
-                          color: Colors.white),
-                      SizedBox(
-                        height: 15,
                       ),
-                      RegularText(
-                          text: '-------', fontSize: 16, color: Colors.white)
                     ],
                   );
-                }),
-          ],
-        ),
+                }
+              }
+              return const SizedBox();
+            }),
       ),
     );
   }

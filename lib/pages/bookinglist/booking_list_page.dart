@@ -15,10 +15,52 @@ class BookingListPage extends StatefulWidget {
 }
 
 class _BookingListPageState extends State<BookingListPage> {
+  BookingsResponse? listBooking;
+  final TextEditingController _searchController = TextEditingController();
 
   Future<void> _refreshData() async {
-    setState(() {});
+    setState(() {
+      _searchController.clear();
+      _loadData();
+    });
   }
+
+// Common function to get booking data
+  Future<BookingsResponse?> fetchBookings({String? searchString}) async {
+    try {
+      if (searchString != null) {
+        return getBookingBySearch(searchString);
+      } else {
+        return getBookingList();
+      }
+    } catch (e) {
+      // Handle the error if needed
+      print('Error fetching bookings: $e');
+      return null;
+    }
+  }
+
+
+// Inside your Widget class
+  Future<void> _loadData({String? searchString}) async {
+    BookingsResponse? bookings = await fetchBookings(searchString: searchString);
+    setState(() {
+      listBooking = bookings;
+    });
+  }
+
+  @override
+  void initState() {
+    _loadData();
+    super.initState();
+  }
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -52,12 +94,24 @@ class _BookingListPageState extends State<BookingListPage> {
                     color: Colors.white,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Center(
+                  child:  Center(
                     child: TextField(
+                      controller: _searchController,
+                      onSubmitted: (value) {
+                        if(value.isNotEmpty){
+                          _loadData(searchString: value);
+                        }else{
+                          _loadData();
+                        }
+                      },
+
                       decoration: InputDecoration(
-                          hintText: 'Mã đơn I Tên khác I Biển số',
-                          prefixIcon: Icon(Icons.search),
-                          suffixIcon: Icon(Icons.close_sharp)),
+                          hintText: 'Mã đơn I Tên khách I Biển số',
+                          prefixIcon: const Icon(Icons.search),
+                          suffixIcon: InkWell( onTap: () {
+                            _searchController.clear();
+                            _loadData();
+                          },child: const Icon(Icons.close_sharp))),
                     ),
                   ),
                 ),
@@ -65,34 +119,34 @@ class _BookingListPageState extends State<BookingListPage> {
             ),
             // Other Sliver Widgets
 
-            FutureBuilder<BookingsResponse?>(
-                future: getBookingList(context),
+            FutureBuilder(
+                future: fetchBookings(),
                 builder: (context, snapshot) {
                   if(snapshot.connectionState == ConnectionState.waiting){
                     return const ActivityLoading();
                   }
                   if(snapshot.hasData && snapshot.connectionState == ConnectionState.done){
-                    if(snapshot.data!.data != null){
+                    if(listBooking != null  && listBooking!.data != null){
                       return SliverList(
                         delegate: SliverChildBuilderDelegate(
                               (BuildContext context, int index)  {
                             return  Padding(
                               padding: const EdgeInsets.only(top: 16.0, right: 8, left: 8),
                               child: ActivityCard(
-                                  bookingId:  snapshot.data!.data![index].bookingSearchResult!.bookingId!,
-                                  dateBook: snapshot.data!.data![index].bookingSearchResult!.dateBook!,
-                                  startTime: snapshot.data!.data![index].bookingSearchResult!.startTime!,
-                                  endTime: snapshot.data!.data![index].bookingSearchResult!.endTime!,
-                                  licensePlate: snapshot.data!.data![index].vehicleInforSearchResult!.licensePlate!,
-                                  address: snapshot.data!.data![index].parkingSearchResult!.address!,
-                                  parkingName: snapshot.data!.data![index].parkingSearchResult!.name!,
-                                  floorName: snapshot.data!.data![index].parkingSlotSearchResult!.floorName!,
-                                  slotName: snapshot.data!.data![index].parkingSlotSearchResult!.name!,
-                                  status: snapshot.data!.data![index].bookingSearchResult!.status!
+                                  bookingId:  listBooking!.data![index].bookingSearchResult!.bookingId!,
+                                  dateBook: listBooking!.data![index].bookingSearchResult!.dateBook!,
+                                  startTime: listBooking!.data![index].bookingSearchResult!.startTime!,
+                                  endTime: listBooking!.data![index].bookingSearchResult!.endTime!,
+                                  licensePlate: listBooking!.data![index].vehicleInforSearchResult!.licensePlate!,
+                                  address: listBooking!.data![index].parkingSearchResult!.address!,
+                                  parkingName: listBooking!.data![index].parkingSearchResult!.name!,
+                                  floorName: listBooking!.data![index].parkingSlotSearchResult!.floorName!,
+                                  slotName: listBooking!.data![index].parkingSlotSearchResult!.name!,
+                                  status: listBooking!.data![index].bookingSearchResult!.status!
                               ),
                             );
                           },
-                          childCount: snapshot.data!.data!.length,
+                          childCount: listBooking!.data!.length,
                         ),
                       );
                     }

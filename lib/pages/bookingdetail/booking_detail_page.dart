@@ -158,14 +158,15 @@ class _BookingPageState extends State<BookingPage> {
                                         title: 'Khách vẫn đang ở trong bãi.',
                                         desc: 'Bạn có muốn đổi slot cho khách hàng đang checkin này?',
                                         btnOkOnPress: () async {
-                                          Navigator.of(context).pop();
+                                          // Navigator.of(context).pop();
                                           bool? isSuccess = await Navigator.push(context, MaterialPageRoute(builder: (context) =>  ParkingMapPage(bookingID: widget.bookingId, isEarly: true,)),);
                                           if( isSuccess == true){
                                             _refreshData();
                                             Utils(context).showSuccessSnackBar('Chuyển slot thành công');
-                                          }else{
-                                            Utils(context).showErrorSnackBar('Chuyển slot thất bại');
                                           }
+                                          // else{
+                                          //   Utils(context).showErrorSnackBar('Chuyển slot thất bại');
+                                          // }
                                         },
                                         btnCancelOnPress: () {},
                                         btnCancelText: "Hủy",
@@ -179,9 +180,39 @@ class _BookingPageState extends State<BookingPage> {
                                         animType: AnimType.bottomSlide,
                                         title: 'Khách còn trong bãi',
                                         desc: 'Bạn có muốn đổi slot cho khách hàng đang checkin này?',
-                                        btnOkOnPress: () {
-                                          Navigator.of(context).pop();
-                                          Navigator.push(context, MaterialPageRoute(builder: (context) =>  ParkingMapPage(bookingID: widget.bookingId, isEarly: false,)),);
+                                        btnOkOnPress: () async {
+                                          // Navigator.of(context).pop();
+                                          bool? isSuccess = await Navigator.push(context, MaterialPageRoute(builder: (context) =>  ParkingMapPage(bookingID: widget.bookingId, isEarly: false,)),);
+                                          if( isSuccess == true){
+                                            _refreshData();
+                                            Utils(context).showSuccessSnackBar('Chuyển slot thành công');
+                                          }
+                                          // else{
+                                          //   Utils(context).showErrorSnackBar('Chuyển slot thất bại');
+                                          // }
+                                        },
+                                        btnCancelOnPress: () {},
+                                        btnCancelText: "Hủy",
+                                        btnOkText: "Đồng ý",
+                                      ).show();
+                                    }
+                                    if(successMessage == 'Đơn đặt xảy ra lỗi. Do slot đang bảo trì.'){
+                                      AwesomeDialog(
+                                        context: context,
+                                        dialogType: DialogType.warning,
+                                        animType: AnimType.bottomSlide,
+                                        title: 'Slot đã bảo trì',
+                                        desc: 'Bạn có muốn đổi slot cho khách hàng đang checkin này?',
+                                        btnOkOnPress: () async {
+                                          // Navigator.of(context).pop();
+                                          bool? isSuccess = await Navigator.push(context, MaterialPageRoute(builder: (context) =>  ParkingMapPage(bookingID: widget.bookingId, isEarly: false,)),);
+                                          if( isSuccess == true){
+                                            _refreshData();
+                                            Utils(context).showSuccessSnackBar('Chuyển slot thành công');
+                                          }
+                                          // else{
+                                          //   Utils(context).showErrorSnackBar('Chuyển slot thất bại');
+                                          // }
                                         },
                                         btnCancelOnPress: () {},
                                         btnCancelText: "Hủy",
@@ -279,7 +310,6 @@ class _BookingPageState extends State<BookingPage> {
                                               child: MyButton(
                                                   text: 'Thanh toán tiền mặt',
                                                   function: ()  {
-
                                                     AwesomeDialog(
                                                       context: context,
                                                       dialogType: DialogType.info,
@@ -422,7 +452,7 @@ class _BookingPageState extends State<BookingPage> {
                                               color: AppColor.forText)
                                         ],
                                       ),
-                                      const SizedBox(height: 30,),
+                                      SizedBox(height: booking.bookingDetails!.guestPhone != null ? 10 : 30,),
                                       Row(
                                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                         children: [
@@ -439,7 +469,6 @@ class _BookingPageState extends State<BookingPage> {
                                     ],
                                   )
                                   : const SemiBoldText(text: 'Khách vãng lai', fontSize: 20, color: AppColor.navy),
-
 
                                   booking.bookingDetails!.guestPhone != null
                                       ? Column(

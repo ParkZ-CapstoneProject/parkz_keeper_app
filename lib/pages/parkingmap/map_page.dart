@@ -257,9 +257,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
     durationNode.addListener(() {
       if (!durationNode.hasFocus) {
         if(durationController.text != ''){
-          print('haha');
           int duration = int.parse(durationController.text);
-
           setState(() {
             endTimeBook = startTime.add(Duration(hours: duration));
             endTimeBookController.text =  DateFormat('HH:mm dd/MM/yyyy').format(endTimeBook);
@@ -353,7 +351,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
     );
   }
 
-  void showMenuBooking(){
+  void showMenuBooking(int? isBooked){
 
     showModalBottomSheet<void>(
       context: context,
@@ -379,6 +377,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                 const SizedBox(height: 8,),
                 const Divider(color: AppColor.fadeText, thickness: 0.5, indent: 8, endIndent: 8),
                 const SizedBox(height: 8,),
+                isBooked == 0 ?
                 InkWell(
                     onTap: () {
                       _showGuessBookingDialog(startTime,context);
@@ -396,7 +395,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                           ],
                         )
                     )
-                ),
+                ) : const SizedBox(),
                 InkWell(
                   onTap: () async {
                     bool isSuccess = await disableSlot(slotSelected.parkingSlotDto!.parkingSlotId!);
@@ -699,10 +698,10 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                       scrollDirection: Axis.horizontal,
                       itemCount: 24, // Set the total number of items
                       itemBuilder: (BuildContext context, int index) {
-                        // int hour = index;
-                        // if (hour <= currentDate.hour) {
-                        //   return const SizedBox(); // Skip rendering for hours in the past
-                        // }
+                        int hour = index;
+                        if (hour <= currentDate.hour && selectedDayCalendar?.day == currentDate.day && hour != 0) {
+                          return const SizedBox(); // Skip rendering for hours in the past
+                        }
                         return InkWell(
                           onTap: (){
                             setState(() {
@@ -1069,7 +1068,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                               if(slotSelected.isBooked == 2){
                                 showMenuActivate();
                               }else{
-                                showMenuBooking();
+                                showMenuBooking(slotSelected.isBooked);
                               }
                               } : null,
 

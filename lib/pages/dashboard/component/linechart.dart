@@ -67,14 +67,26 @@ class _LineChartSample2State extends State<LineChartSample2> {
     );
     Widget text;
     switch (value.toInt()) {
-      case 2:
-        text = const Text('MAR', style: style);
+      case 0:
+        text = const Text('T2', style: style);
         break;
-      case 5:
-        text = const Text('JUN', style: style);
+      case 2:
+        text = const Text('T3', style: style);
+        break;
+      case 4:
+        text = const Text('T4', style: style);
+        break;
+      case 6:
+        text = const Text('T5', style: style);
         break;
       case 8:
-        text = const Text('SEP', style: style);
+        text = const Text('T6', style: style);
+        break;
+      case 10:
+        text = const Text('T7', style: style);
+        break;
+      case 12:
+        text = const Text('CN', style: style);
         break;
       default:
         text = const Text('', style: style);
@@ -98,9 +110,12 @@ class _LineChartSample2State extends State<LineChartSample2> {
         text = '10K';
         break;
       case 3:
-        text = '30k';
+        text = '20K';
         break;
       case 5:
+        text = '30k';
+        break;
+      case 7:
         text = '50k';
         break;
       default:
