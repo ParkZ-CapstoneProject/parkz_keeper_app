@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:http/http.dart' as http;
+import 'package:parkz_keeper_app/pages/dashboard/dashboard_page.dart';
 
 import '../common/utils/util_widget.dart';
 import '../models/base_response.dart';
@@ -10,6 +11,7 @@ import '../models/booking_detail_response.dart';
 import '../models/booking_response.dart';
 import '../models/bookings_response.dart';
 import '../models/check_booking_response.dart';
+import '../models/dashboard_response.dart';
 import '../models/floors_response.dart';
 import '../models/login_response.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -426,6 +428,7 @@ Future<ProfileResponse?> getProfile() async {
         final responseJson = jsonDecode(response.body);
         ProfileResponse profileResponse = ProfileResponse.fromJson(responseJson);
         await storage.write(key: 'parkingId', value: profileResponse.data!.parkingId.toString());
+        Dashboard.parkingID = profileResponse.data!.parkingId!;
         return profileResponse;
       } else {
         throw Exception('Fail to get profile info: Status code ${response.statusCode} Message ${response.body}');
@@ -635,7 +638,7 @@ Future<bool> disableSlot(int slotID) async {
   }
 }
 
-// Disable slot
+// Enable slot
 Future<bool> enableSlot(int slotID) async {
   try {
     Map<String, dynamic> requestBody = {
@@ -715,6 +718,33 @@ Future<bool> changeSlot(int slotID, int bookingID) async {
   }
 }
 
+
+//Lay dashboard
+Future<DashboardResponse> getDashboard() async {
+  try {
+    // Print the request body before sending
+    if(Dashboard.parkingID != 0){
+      debugPrint('---Request Get Parking Dashboard---');
+      debugPrint('parkingId : ${Dashboard.parkingID}');
+
+      final response = await http.get(
+        Uri.parse('$host/api/chart/card/parkings/${Dashboard.parkingID}/statistic-card'),
+        headers: {'accept': 'application/json'},
+      );
+
+      if (response.statusCode == 200) {
+        final responseJson = jsonDecode(response.body);
+        return DashboardResponse.fromJson(responseJson);
+      } else {
+        throw Exception('Failed to fetch dashboard. Status code: ${response.statusCode}');
+      }
+    }
+    throw Exception('Failed to fetch dashboard.');
+
+  } catch (e) {
+    throw Exception('Failed to fetch dashboard: $e');
+  }
+}
 
 
 

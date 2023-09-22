@@ -11,6 +11,7 @@ import 'package:parkz_keeper_app/pages/parkingmap/map_page.dart';
 import '../../common/button/button_widget.dart';
 import '../../common/constanst.dart';
 import '../../common/text/medium.dart';
+import '../../common/text/regular.dart';
 import '../../common/text/semi_bold.dart';
 import '../../common/utils/loading_page.dart';
 import '../../models/booking_detail_response.dart';
@@ -257,143 +258,175 @@ class _BookingPageState extends State<BookingPage> {
                                         context: context,
                                         dialogType: DialogType.info,
                                         animType: AnimType.bottomSlide,
-                                        title: 'Thất bại',
-                                        body: Column(
-                                          children: [
-                                            MediumText(
-                                                text:
-                                                'Tên phương tiện: ${checkingBookingSuccess.data!.booking!.vehicleInfor!.vehicleName}',
-                                                fontSize: 13,
-                                                color: AppColor.forText),
-                                            const SizedBox(height: 8,),
-                                            MediumText(
-                                                text:
-                                                'Tên biển số xe: ${checkingBookingSuccess.data!.booking!.vehicleInfor!.licensePlate}',
-                                                fontSize: 13,
-                                                color: AppColor.forText),
-                                            const SizedBox(height: 8,),
-                                            MediumText(
-                                                text:
-                                                'Màu xe: ${checkingBookingSuccess.data!.booking!.vehicleInfor!.color}',
-                                                fontSize: 13,
-                                                color: AppColor.forText),
-                                            const SizedBox(height: 8,),
-                                            MediumText(
-                                                text:
-                                                'Giờ vào: ${DateFormat('HH:mm').format(checkingBookingSuccess.data!.booking!.checkinTime!)}',
-                                                fontSize: 13,
-                                                color: AppColor.forText),
-                                            const SizedBox(height: 8,),
-                                            MediumText(
-                                                text:
-                                                'Giờ ra: ${DateFormat('HH:mm').format(checkingBookingSuccess.data!.booking!.checkoutTime!)}',
-                                                fontSize: 13,
-                                                color: AppColor.forText),
-                                            const SizedBox(height: 8),
-                                            Column(
-                                              children: [
-                                                const SemiBoldText(
-                                                    text:
-                                                    'Cần thanh toán:',
-                                                    fontSize: 14,
-                                                    color: AppColor.forText),
-                                                SemiBoldText(
-                                                    text:
-                                                    '${moneyFormat(checkingBookingSuccess.data!.booking!.unPaidMoney!)} đ',
-                                                    fontSize: 20,
-                                                    color: AppColor.orange),
-                                              ],
-                                            ),
-                                            const SizedBox(height: 8),
-                                            SizedBox(
-                                              width: double.infinity,
-                                              child: MyButton(
-                                                  text: 'Thanh toán tiền mặt',
-                                                  function: ()  {
-                                                    AwesomeDialog(
-                                                      context: context,
-                                                      dialogType: DialogType.info,
-                                                      animType: AnimType.bottomSlide,
-                                                      title: 'Xác nhận',
-                                                      desc: 'Khách hàng đã thanh toán tiền ?',
-                                                      btnCancelOnPress: () {},
-                                                      btnOkOnPress: () async {
-                                                        String isSuccess = await checkoutBooking(
-                                                            checkingBookingSuccess.data!.booking!.bookingId!,
-                                                            checkingBookingSuccess.data!.parkingId!,
-                                                            'thanh_toan_tien_mat',
-                                                            null
-                                                        );
-
-                                                        if (isSuccess == 'true') {
-                                                          AwesomeDialog(
-                                                            context: context,
-                                                            dialogType: DialogType.success,
-                                                            animType: AnimType.bottomSlide,
-                                                            title: 'Thành công',
-                                                            desc: 'Khách hàng đã thanh toán thành công',
-                                                            btnOkOnPress: ()  {
-                                                              _refreshData();
-                                                            },
-                                                          ).show();
-
-                                                        }else{
-                                                          AwesomeDialog(
-                                                            context: context,
-                                                            dialogType: DialogType.success,
-                                                            animType: AnimType.bottomSlide,
-                                                            title: 'Thất bại',
-                                                            desc: 'Cập nhật trạng thái đơn thất bại',
-                                                            btnOkOnPress: ()  {
-                                                              _refreshData();
-                                                            },
-                                                          ).show();
-                                                        }
-                                                      },
-                                                    ).show();
-                                                  },
-                                                  textColor: Colors.white,
-                                                  backgroundColor: AppColor.navy),
-                                            ),
-                                            SizedBox(
-                                              width: double.infinity,
-                                              child: MyButton(
-                                                  text: 'Thanh toán qua ví',
-                                                  function: () async {
-                                                    String isSuccess = await checkoutBooking(
-                                                        checkingBookingSuccess.data!.booking!.bookingId!,
-                                                        checkingBookingSuccess.data!.parkingId!,
-                                                        'thanh_toan_online',
-                                                        null
-                                                    );
-                                                    if (isSuccess == 'true') {
+                                        title: 'Thông tin thêm',
+                                        body: Padding(
+                                          padding: const EdgeInsets.all(8.0),
+                                          child: Column(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              MediumText(
+                                                  text:
+                                                  'Tên phương tiện: ${checkingBookingSuccess.data!.booking!.vehicleInfor!.vehicleName}',
+                                                  fontSize: 13,
+                                                  color: AppColor.forText),
+                                              const SizedBox(height: 8,),
+                                              MediumText(
+                                                  text:
+                                                  'Tên biển số xe: ${checkingBookingSuccess.data!.booking!.vehicleInfor!.licensePlate}',
+                                                  fontSize: 13,
+                                                  color: AppColor.forText),
+                                              const SizedBox(height: 8,),
+                                              MediumText(
+                                                  text:
+                                                  'Màu xe: ${checkingBookingSuccess.data!.booking!.vehicleInfor!.color}',
+                                                  fontSize: 13,
+                                                  color: AppColor.forText),
+                                              const SizedBox(height: 8,),
+                                              MediumText(
+                                                  text:
+                                                  'Giờ vào: ${DateFormat('HH:mm').format(checkingBookingSuccess.data!.booking!.checkinTime!)}',
+                                                  fontSize: 13,
+                                                  color: AppColor.forText),
+                                              const SizedBox(height: 8,),
+                                              MediumText(
+                                                  text:
+                                                  'Giờ ra: ${DateFormat('HH:mm').format(checkingBookingSuccess.data!.booking!.checkoutTime!)}',
+                                                  fontSize: 13,
+                                                  color: AppColor.forText),
+                                              const SizedBox(height: 8),
+                                              Divider(color: AppColor.navy,),
+                                              SemiBoldText(text: 'Chi tiết đơn', fontSize: 15, color: AppColor.forText),
+                                              const SizedBox(height: 8),
+                                              Column(
+                                                mainAxisAlignment: MainAxisAlignment.start,
+                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                children: [
+                                                  for (var transaction in checkingBookingSuccess.data!.booking!.transactions!)
+                                                    Row(
+                                                      children: [
+                                                        RegularText( text:
+                                                        transaction == checkingBookingSuccess.data!.booking!.transactions!.first
+                                                            ? 'Tiền đặt: '
+                                                            : 'Phụ phí: ',
+                                                          color: AppColor.forText,
+                                                          fontSize: 12,
+                                                        ),
+                                                        MediumText(text: moneyFormat(transaction.price!), fontSize: 13, color: AppColor.navy),
+                                                        const SizedBox(width: 6,),
+                                                        Icon(transaction.status == 'Chua_thanh_toan' ? Icons.cancel : Icons.check_circle,
+                                                          color: transaction.status == 'Chua_thanh_toan' ? Colors.red : Colors.green,
+                                                          size: 12,)
+                                                      ],
+                                                    ),
+                                                  const SizedBox(height: 8),
+                                                ],
+                                              ),
+                                              Column(
+                                                children: [
+                                                  const SemiBoldText(
+                                                      text:
+                                                      'Cần thanh toán:',
+                                                      fontSize: 14,
+                                                      color: AppColor.forText),
+                                                  SemiBoldText(
+                                                      text:
+                                                      '${moneyFormat(checkingBookingSuccess.data!.booking!.unPaidMoney!).trim()} đ',
+                                                      fontSize: 20,
+                                                      color: AppColor.orange),
+                                                ],
+                                              ),
+                                              const SizedBox(height: 8),
+                                              SizedBox(
+                                                width: double.infinity,
+                                                child: MyButton(
+                                                    text: 'Thanh toán tiền mặt',
+                                                    function: ()  {
                                                       AwesomeDialog(
                                                         context: context,
-                                                        dialogType: DialogType.success,
+                                                        dialogType: DialogType.info,
                                                         animType: AnimType.bottomSlide,
-                                                        title: 'Thành công',
-                                                        desc: 'Khách hàng đã thanh toán thành công',
-                                                        btnOkOnPress: ()  {
-                                                          _refreshData();
+                                                        title: 'Xác nhận',
+                                                        desc: 'Khách hàng đã thanh toán tiền ?',
+                                                        btnCancelOnPress: () {},
+                                                        btnOkOnPress: () async {
+                                                          String isSuccess = await checkoutBooking(
+                                                              checkingBookingSuccess.data!.booking!.bookingId!,
+                                                              checkingBookingSuccess.data!.parkingId!,
+                                                              'thanh_toan_tien_mat',
+                                                              null
+                                                          );
+
+                                                          if (isSuccess == 'true') {
+                                                            AwesomeDialog(
+                                                              context: context,
+                                                              dialogType: DialogType.success,
+                                                              animType: AnimType.bottomSlide,
+                                                              title: 'Thành công',
+                                                              desc: 'Khách hàng đã thanh toán thành công',
+                                                              btnOkOnPress: ()  {
+                                                                _refreshData();
+                                                              },
+                                                            ).show();
+
+                                                          }else{
+                                                            AwesomeDialog(
+                                                              context: context,
+                                                              dialogType: DialogType.success,
+                                                              animType: AnimType.bottomSlide,
+                                                              title: 'Thất bại',
+                                                              desc: 'Cập nhật trạng thái đơn thất bại',
+                                                              btnOkOnPress: ()  {
+                                                                _refreshData();
+                                                              },
+                                                            ).show();
+                                                          }
                                                         },
                                                       ).show();
-                                                    }else {
-                                                      AwesomeDialog(
-                                                        context: context,
-                                                        dialogType: DialogType.error,
-                                                        animType: AnimType.bottomSlide,
-                                                        title: 'Thất bại',
-                                                        desc: isSuccess,
-                                                        btnOkOnPress: ()  {
-                                                          _refreshData();
-                                                        },
-                                                      ).show();
-                                                    }
-                                                  },
-                                                  textColor: Colors.white,
-                                                  backgroundColor: AppColor.forText),
-                                            )
-                                          ],
+                                                    },
+                                                    textColor: Colors.white,
+                                                    backgroundColor: AppColor.navy),
+                                              ),
+                                              SizedBox(
+                                                width: double.infinity,
+                                                child: MyButton(
+                                                    text: 'Thanh toán qua ví',
+                                                    function: () async {
+                                                      String isSuccess = await checkoutBooking(
+                                                          checkingBookingSuccess.data!.booking!.bookingId!,
+                                                          checkingBookingSuccess.data!.parkingId!,
+                                                          'thanh_toan_online',
+                                                          null
+                                                      );
+                                                      if (isSuccess == 'true') {
+                                                        AwesomeDialog(
+                                                          context: context,
+                                                          dialogType: DialogType.success,
+                                                          animType: AnimType.bottomSlide,
+                                                          title: 'Thành công',
+                                                          desc: 'Khách hàng đã thanh toán thành công',
+                                                          btnOkOnPress: ()  {
+                                                            _refreshData();
+                                                          },
+                                                        ).show();
+                                                      }else {
+                                                        AwesomeDialog(
+                                                          context: context,
+                                                          dialogType: DialogType.error,
+                                                          animType: AnimType.bottomSlide,
+                                                          title: 'Thất bại',
+                                                          desc: isSuccess,
+                                                          btnOkOnPress: ()  {
+                                                            _refreshData();
+                                                          },
+                                                        ).show();
+                                                      }
+                                                    },
+                                                    textColor: Colors.white,
+                                                    backgroundColor: AppColor.forText),
+                                              )
+                                            ],
+                                          ),
                                         ),
                                       ).show();
                                     }
@@ -411,7 +444,7 @@ class _BookingPageState extends State<BookingPage> {
                 ) : const SizedBox(),
                 body: Container(
                   height: double.infinity,
-                  padding: const EdgeInsets.only(left: 24, right: 24, top: 20, bottom: 70),
+                  padding:  EdgeInsets.only(left: 24, right: 24, top: 20, bottom: booking.bookingDetails!.status == 'Done' || booking.bookingDetails!.status == 'Cancel' ? 0 : 50),
                   decoration: const BoxDecoration(
                     gradient: LinearGradient(colors: [
                       Color(0xFF064789),
@@ -487,7 +520,7 @@ class _BookingPageState extends State<BookingPage> {
                                                     color: AppColor.forText),
                                                 SemiBoldText(
                                                     text: booking
-                                                        .bookingDetails!.guestPhone!,
+                                                        .bookingDetails!.guestPhone!.trim(),
                                                     fontSize: 14,
                                                     color: AppColor.forText)
                                               ],

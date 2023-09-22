@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:parkz_keeper_app/common/button/button_widget.dart';
 import 'package:parkz_keeper_app/common/constanst.dart';
 import 'package:parkz_keeper_app/common/text/medium.dart';
+import 'package:parkz_keeper_app/common/text/regular.dart';
 import 'package:parkz_keeper_app/common/text/semi_bold.dart';
 import 'package:parkz_keeper_app/network/api.dart';
 
@@ -82,7 +83,36 @@ class BookingInfoPopup extends StatelessWidget {
                         fontSize: 13,
                         color: AppColor.forText),
                     const SizedBox(height: 8),
+                    Divider(color: AppColor.navy, thickness: 1,),
+                    SemiBoldText(text: 'Chi tiết', fontSize: 12, color: AppColor.forText),
+                    const SizedBox(height: 6),
                     Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        for (var transaction in checkBooking.data!.booking!.transactions!)
+                          Row(
+                            children: [
+                              RegularText( text:
+                                transaction == checkBooking.data!.booking!.transactions!.first
+                                    ? 'Tiền đặt: '
+                                    : 'Phụ phí: ',
+                                color: AppColor.forText,
+                                fontSize: 12,
+                              ),
+                              MediumText(text: moneyFormat(transaction.price!), fontSize: 13, color: AppColor.navy),
+                              const SizedBox(width: 6,),
+                              Icon(transaction.status == 'Chua_thanh_toan' ? Icons.cancel : Icons.check_circle,
+                                  color: transaction.status == 'Chua_thanh_toan' ? Colors.red : Colors.green,
+                              size: 12,)
+                            ],
+                          ),
+                        const SizedBox(height: 8),
+                      ],
+                    ),
+                    Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const SemiBoldText(
                             text:

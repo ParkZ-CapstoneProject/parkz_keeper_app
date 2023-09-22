@@ -161,7 +161,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                   TextField(
                     controller: vehicleNameController,
                     decoration: const InputDecoration(
-                      labelText: 'Tên phương tiện',
+                      labelText: 'Tên phương tiện *',
                       border: OutlineInputBorder(
                         borderSide: BorderSide(color: AppColor.navy, width: 2),
                       ),
@@ -171,7 +171,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                   TextField(
                     controller: colorController,
                     decoration: const InputDecoration(
-                      labelText: 'Màu xe',
+                      labelText: 'Màu xe *',
                       border: OutlineInputBorder(
                         borderSide: BorderSide(color: AppColor.navy, width: 2),
                       ),
@@ -191,27 +191,39 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                         String vehicleName = vehicleNameController.text;
                         String color = colorController.text;
 
-                        int? bookingId = await createBooking(slotId,
-                            endTimeBook,
-                            startTime,
-                            guessNameBook,
-                            guessPhoneBook,
-                            licensePlate,
-                            vehicleName,
-                            color,
-                            context);
-                        if(bookingId != null){
-                          debugPrint('BookingIDne: $bookingId');
-                          await Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) =>  BookingPage(bookingId: bookingId,)),
-                          );
+                        if(licensePlate.isEmpty){
+                          Utils(context).showErrorSnackBar('Biển số xe không được trống');
+                        }else if (vehicleName.isEmpty){
+                          Utils(context).showErrorSnackBar('Tên xe không được trống');
+                        } else if (color.isEmpty){
+                          Utils(context).showErrorSnackBar('Màu không được trống');
+                        }else{
+                          if(guessNameBook.isEmpty){
+                            guessNameBook = 'Không';
+                          }
+                          if(guessPhoneBook.isEmpty){
+                            guessPhoneBook = 'Không';
+                          }
+
+                          int? bookingId = await createBooking(slotId,
+                              endTimeBook,
+                              startTime,
+                              guessNameBook,
+                              guessPhoneBook,
+                              licensePlate,
+                              vehicleName,
+                              color,
+                              context);
+                          if(bookingId != null){
+                            debugPrint('BookingIDne: $bookingId');
+                            await Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) =>  BookingPage(bookingId: bookingId,)),
+                            );
+                          }
+                          Navigator.of(context).pop();
                         }
-
-                        Navigator.of(context).pop();
-
-
                       }, textColor: Colors.white, backgroundColor: AppColor.navy
                   )
                 ],
@@ -699,7 +711,7 @@ class _ParkingMapPageState extends State<ParkingMapPage> {
                       itemCount: 24, // Set the total number of items
                       itemBuilder: (BuildContext context, int index) {
                         int hour = index;
-                        if (hour <= currentDate.hour && selectedDayCalendar?.day == currentDate.day && hour != 0) {
+                        if (hour <= currentDate.hour && selectedDayCalendar?.day == currentDate.day) {
                           return const SizedBox(); // Skip rendering for hours in the past
                         }
                         return InkWell(
